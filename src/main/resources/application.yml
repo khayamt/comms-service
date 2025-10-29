@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: comms-service
+  config:
+    import: "optional:classpath:application-secrets.yml"
+  datasource:
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+server:
+  port: 9110
+  forward-headers-strategy: framework
+  servlet:
+   context-path: /comms-service
+
+
+springdoc:
+  api-docs:
+    # Expose your OpenAPI JSON at /v3/api-docs
+    path: /v3/api-docs
+  swagger-ui:
+    # Expose Swagger UI at /swagger-ui.html
+    path: /swagger-ui.html
+    # Force Swagger UI to use the correct docs URL
+    url: /v3/api-docs
+    # (Optional) Nice name in the Swagger header
+    display-operation-id: true
+    doc-expansion: none
+eureka:
+  instance:
+    hostname: localhost #host.containers.internal
+  client:
+    registerWithEureka: true
+    fetchRegistry: true
+    serviceUrl:
+      defaultZone: http://${eureka.instance.hostname}:8761/eureka/
