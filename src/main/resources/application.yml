@@ -2,7 +2,7 @@ spring:
   application:
     name: comms-service
   config:
-    import: "optional:classpath:application-secrets.yml"
+    import: "optional:file:/app/config/application-secrets.yml"
   datasource:
     driver-class-name: org.postgresql.Driver
   jpa:
