@@ -60,7 +60,7 @@ public class WhatsAppController {
 
     @PostMapping("/receiveGeneric")
     public ResponseEntity<String> receiveGenericMessage(@RequestBody Map<String, Object> body) {
-        System.out.println("Received WhatsApp Webhook: " + body);
+        System.out.println("Received Generic WhatsApp Webhook: " + body);
         return ResponseEntity.ok("EVENT_RECEIVED");
     }
     @PostMapping("/sendText")
