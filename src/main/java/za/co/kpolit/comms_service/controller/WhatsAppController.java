@@ -20,10 +20,11 @@ public class WhatsAppController {
     @Value("${whatsapp.verify-token}")
     private String verifyToken;
 
-    @GetMapping("/verify")
+    //@GetMapping("/verify")
     public ResponseEntity<String> verifyWebhook(@RequestParam(name = "hub.mode", required = false) String mode,
                                                 @RequestParam(name = "hub.verify_token", required = false) String token,
                                                 @RequestParam(name = "hub.challenge", required = false) String challenge) {
+        System.out.println("Verifying WhatsApp Webhook: " + challenge);
         if ("subscribe".equals(mode) && verifyToken.equals(token)) {
             return ResponseEntity.ok(challenge);
         } else {
@@ -31,7 +32,7 @@ public class WhatsAppController {
         }
     }
 
-    @PostMapping("/receive")
+    //@PostMapping("/receive")
     public ResponseEntity<String> receiveMessage(@RequestBody Map<String, Object> body) {
         System.out.println("Received WhatsApp Webhook: " + body);
 

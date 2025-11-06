@@ -30,7 +30,7 @@ springdoc:
     doc-expansion: none
 eureka:
   instance:
-    hostname: localhost #host.containers.internal
+    hostname: host.containers.internal #localhost
   client:
     registerWithEureka: true
     fetchRegistry: true
