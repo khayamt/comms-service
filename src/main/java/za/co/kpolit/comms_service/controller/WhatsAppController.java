@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.List;
 
 @RestController
-@RequestMapping("/whatsapp")
+@RequestMapping("/webhook")
 public class WhatsAppController {
     private final WhatsAppService whatsappService;
     public WhatsAppController(WhatsAppService whatsappService) {
