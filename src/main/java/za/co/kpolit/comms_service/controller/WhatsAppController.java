@@ -43,6 +43,10 @@ public class WhatsAppController {
                 List<Map<String, Object>> changes = (List<Map<String, Object>>) entry.get("changes");
                 if (changes != null && !changes.isEmpty()) {
                     Map<String, Object> value = (Map<String, Object>) changes.get(0).get("value");
+                    // ✅ Extract phone_number_id dynamically
+                    Map<String, Object> metadata = (Map<String, Object>) value.get("metadata");
+                    String phoneNumberId = (String) metadata.get("phone_number_id");
+
                     List<Map<String, Object>> messages = (List<Map<String, Object>>) value.get("messages");
                     if (messages != null && !messages.isEmpty()) {
                         Map<String, Object> message = messages.get(0);
@@ -69,15 +73,15 @@ public class WhatsAppController {
         return ResponseEntity.ok("EVENT_RECEIVED");
     }
     @PostMapping("/sendText")
-    public Mono<ResponseEntity<String>> sendWhatsAppMessage(@RequestParam String to, @RequestParam String text) {
-        return whatsappService.sendTextMessage(to, text)
+    public Mono<ResponseEntity<String>> sendWhatsAppMessage(@RequestParam String phoneNumberId, @RequestParam String to, @RequestParam String text) {
+        return whatsappService.sendTextMessage(phoneNumberId, to, text)
                 .map(response -> ResponseEntity.ok("Message sent successfully: " + response))
                 .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError()
                         .body("Failed to send message: " + e.getMessage())));
     }
     @PostMapping("/sendTemplate")
-    public Mono<ResponseEntity<String>> sendTemplateWhatsAppMessage(@RequestParam String to, @RequestParam String template) {
-        return whatsappService.sendTemplateMessage(to, template)
+    public Mono<ResponseEntity<String>> sendTemplateWhatsAppMessage(@RequestParam String phoneNumberId, @RequestParam String to, @RequestParam String template) {
+        return whatsappService.sendTemplateMessage(phoneNumberId,to, template)
                 .map(response -> ResponseEntity.ok("Message sent successfully: " + response))
                 .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError()
                         .body("Failed to send message: " + e.getMessage())));

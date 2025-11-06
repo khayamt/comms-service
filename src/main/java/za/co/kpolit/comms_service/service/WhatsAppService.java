@@ -20,8 +20,8 @@ public class WhatsAppService {
     @Value("${whatsapp.access-token}")
     private String accessToken;
 
-    @Value("${whatsapp.phone-number-id}")
-    private String phoneNumberId;
+    //@Value("${whatsapp.phone-number-id}")
+    //private String phoneNumberId;
 
     @Value("${whatsapp.api-url}")
     private String apiUrl = "https://graph.facebook.com/v22.0";
@@ -30,7 +30,7 @@ public class WhatsAppService {
         this.webClient = builder.baseUrl(apiUrl).build();
     }
 
-    public Mono<String> sendTextMessage(String to, String text) {
+    public Mono<String> sendTextMessage(String phoneNumberId, String to, String text) {
         String url = String.format("/%s/messages", phoneNumberId);
         Map<String, Object> payload = Map.of(
                 "messaging_product", "whatsapp",
@@ -49,7 +49,7 @@ public class WhatsAppService {
                 .doOnNext(resp -> System.out.println("WhatsApp API response: " + resp));
     }
 
-    public Mono<String> sendTemplateMessage(String to, String template) {
+    public Mono<String> sendTemplateMessage(String phoneNumberId, String to, String template) {
         String url = String.format("/%s/messages", phoneNumberId);
         Map<String, Object> payload = Map.of(
                 "messaging_product", "whatsapp",
