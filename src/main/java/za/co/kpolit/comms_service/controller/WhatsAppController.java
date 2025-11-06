@@ -48,7 +48,11 @@ public class WhatsAppController {
                         Map<String, Object> message = messages.get(0);
                         String text = ((Map<String, String>) message.get("text")).get("body");
                         String from = (String) message.get("from");
+                        String response = "Thank you for the message, I will respond latter. Still in development.";
                         System.out.println("📩 Message from " + from + ": " + text);
+
+                        sendWhatsAppMessage(from,response);
+                        System.out.println("Responded to " + from + ": " + response);
                     }
                 }
             }
