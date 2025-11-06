@@ -55,7 +55,7 @@ public class WhatsAppController {
                         String response = "Thank you for the message, I will respond latter. Still in development.";
                         System.out.println("📩 Message from " + from + ": " + text);
 
-                        sendWhatsAppMessage(from,response);
+                        sendWhatsAppMessage(phoneNumberId,from,response);
                         System.out.println("Responded to " + from + ": " + response);
                     }
                 }
