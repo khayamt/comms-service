@@ -38,6 +38,9 @@ public class WhatsAppService {
                 "type", "text",
                 "text", Map.of("body", text)
         );
+        System.out.println("📤 Sending WhatsApp message to: " + to);
+        System.out.println("Payload: " + payload);
+
 
         return webClient.post()
                 .uri(url)
@@ -46,7 +49,17 @@ public class WhatsAppService {
                 .bodyValue(payload)
                 .retrieve()
                 .bodyToMono(String.class)
-                .doOnNext(resp -> System.out.println("WhatsApp API response: " + resp));
+                .doOnNext(resp -> System.out.println("✅ WhatsApp API response: " + resp))
+                .doOnError(error -> {
+                    System.err.println("❌ Error sending WhatsApp message to " + to);
+                    System.err.println("Error Type: " + error.getClass().getSimpleName());
+                    System.err.println("Error Message: " + error.getMessage());
+                })
+                .onErrorResume(error -> {
+                    String fallbackMsg = "Failed to send message: " + error.getMessage();
+                    System.err.println("⚠️ Returning fallback response: " + fallbackMsg);
+                    return Mono.just(fallbackMsg);
+                });
     }
 
     public Mono<String> sendTemplateMessage(String phoneNumberId, String to, String template) {
