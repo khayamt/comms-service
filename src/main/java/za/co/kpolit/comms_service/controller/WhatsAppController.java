@@ -59,7 +59,7 @@ public class WhatsAppController {
                         String from = (String) message.get("from");
                         String response = "Thank you for the message, I will respond latter. Still in development.";
                         System.out.println("📩 Message from " + from + ": " + text);
-                        saveMassage(from,to,"INCOMING","text",text,phoneNumberId);
+                        saveMessage(from,to,"INCOMING","text",text,phoneNumberId);
 
                         sendWhatsAppMessage(phoneNumberId,from,response);
                         System.out.println("Responded to " + from + ": " + response);
@@ -80,26 +80,32 @@ public class WhatsAppController {
     }
     @PostMapping("/sendText")
     public Mono<ResponseEntity<String>> sendWhatsAppMessage(@RequestParam String phoneNumberId, @RequestParam String to, @RequestParam String text) {
+        System.out.println("Sending message to " + to);
         return whatsappService.sendTextMessage(phoneNumberId, to, text)
                 .map(response ->
                 {
-                    saveMassage(phoneNumberId,to,"OUTGOING","text",text,phoneNumberId);
+                    System.out.println("✅ Message sent successfully:....");
+                    saveMessage(phoneNumberId,to,"OUTGOING","text",text,phoneNumberId);
                     return ResponseEntity.ok("Message sent successfully: " + response);
                 })
-                .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError()
-                        .body("Failed to send message: " + e.getMessage())));
+                .onErrorResume(e ->
+                {
+                    System.err.println("❌ Error sending message: " + e.getMessage());
+                    return Mono.just(ResponseEntity.internalServerError()
+                        .body("Failed to send message: " + e.getMessage()));
+                });
     }
     @PostMapping("/sendTemplate")
     public Mono<ResponseEntity<String>> sendTemplateWhatsAppMessage(@RequestParam String phoneNumberId, @RequestParam String to, @RequestParam String template) {
         return whatsappService.sendTemplateMessage(phoneNumberId,to, template)
                 .map(response ->
-                {   saveMassage(phoneNumberId,to,"OUTGOING","template",template,phoneNumberId);
+                {   saveMessage(phoneNumberId,to,"OUTGOING","template",template,phoneNumberId);
                     return ResponseEntity.ok("Message sent successfully: " + response);
                 })
                 .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError()
                         .body("Failed to send message: " + e.getMessage())));
     }
-    private void saveMassage(String from, String to, String direction, String messageType, String messageText, String phoneNumberId)
+    private void saveMessage(String from, String to, String direction, String messageType, String messageText, String phoneNumberId)
     {
 
         // 🗄️ Save message to DB
