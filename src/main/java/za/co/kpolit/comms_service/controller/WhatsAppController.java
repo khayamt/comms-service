@@ -5,16 +5,20 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 import za.co.kpolit.comms_service.service.WhatsAppService;
-
+import za.co.kpolit.comms_service.model.WhatsAppMessage;
+import za.co.kpolit.comms_service.repository.WhatsAppMessageRepository;
 import java.util.Map;
 import java.util.List;
+import java.time.Instant;
 
 @RestController
 @RequestMapping("/webhook")
 public class WhatsAppController {
     private final WhatsAppService whatsappService;
-    public WhatsAppController(WhatsAppService whatsappService) {
+    private final WhatsAppMessageRepository messageRepository;
+    public WhatsAppController(WhatsAppService whatsappService, WhatsAppMessageRepository messageRepository) {
         this.whatsappService = whatsappService;
+        this.messageRepository = messageRepository;
     }
 
     @Value("${whatsapp.verify-token}")
@@ -46,6 +50,7 @@ public class WhatsAppController {
                     // ✅ Extract phone_number_id dynamically
                     Map<String, Object> metadata = (Map<String, Object>) value.get("metadata");
                     String phoneNumberId = (String) metadata.get("phone_number_id");
+                    String to = (String) metadata.get("display_phone_number");
 
                     List<Map<String, Object>> messages = (List<Map<String, Object>>) value.get("messages");
                     if (messages != null && !messages.isEmpty()) {
@@ -54,6 +59,7 @@ public class WhatsAppController {
                         String from = (String) message.get("from");
                         String response = "Thank you for the message, I will respond latter. Still in development.";
                         System.out.println("📩 Message from " + from + ": " + text);
+                        saveMassage(from,to,"INCOMING","text",text,phoneNumberId);
 
                         sendWhatsAppMessage(phoneNumberId,from,response);
                         System.out.println("Responded to " + from + ": " + response);
@@ -75,16 +81,39 @@ public class WhatsAppController {
     @PostMapping("/sendText")
     public Mono<ResponseEntity<String>> sendWhatsAppMessage(@RequestParam String phoneNumberId, @RequestParam String to, @RequestParam String text) {
         return whatsappService.sendTextMessage(phoneNumberId, to, text)
-                .map(response -> ResponseEntity.ok("Message sent successfully: " + response))
+                .map(response ->
+                {
+                    saveMassage(phoneNumberId,to,"OUTGOING","text",text,phoneNumberId);
+                    return ResponseEntity.ok("Message sent successfully: " + response);
+                })
                 .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError()
                         .body("Failed to send message: " + e.getMessage())));
     }
     @PostMapping("/sendTemplate")
     public Mono<ResponseEntity<String>> sendTemplateWhatsAppMessage(@RequestParam String phoneNumberId, @RequestParam String to, @RequestParam String template) {
         return whatsappService.sendTemplateMessage(phoneNumberId,to, template)
-                .map(response -> ResponseEntity.ok("Message sent successfully: " + response))
+                .map(response ->
+                {   saveMassage(phoneNumberId,to,"OUTGOING","template",template,phoneNumberId);
+                    return ResponseEntity.ok("Message sent successfully: " + response);
+                })
                 .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError()
                         .body("Failed to send message: " + e.getMessage())));
+    }
+    private void saveMassage(String from, String to, String direction, String messageType, String messageText, String phoneNumberId)
+    {
+
+        // 🗄️ Save message to DB
+        WhatsAppMessage msg = new WhatsAppMessage();
+        msg.setFromNumber(from);
+        msg.setToNumber(to);
+        msg.setDirection(direction);
+        msg.setMessageType(messageType);
+        msg.setContent(messageText);
+        msg.setTimestamp(Instant.now());
+        msg.setPhoneNumberId(phoneNumberId);
+
+        messageRepository.save(msg);
+
     }
 
 }
