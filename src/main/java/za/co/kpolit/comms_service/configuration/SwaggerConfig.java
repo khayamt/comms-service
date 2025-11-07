@@ -23,7 +23,7 @@ public class SwaggerConfig {
     public GroupedOpenApi publicApi() {
         return GroupedOpenApi.builder()
                 .group("public")
-                .pathsToMatch("/whatsapp/**")
+                .pathsToMatch("/**")
                 .build();
     }
 }
