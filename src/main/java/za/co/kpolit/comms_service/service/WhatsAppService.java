@@ -12,9 +12,13 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class WhatsAppService {
+    private static final Logger logger = LoggerFactory.getLogger(WhatsAppService.class);
+
     private final WebClient webClient;
 
     @Value("${whatsapp.access-token}")
@@ -31,15 +35,15 @@ public class WhatsAppService {
     }
 
     public Mono<String> sendTextMessage(String phoneNumberId, String to, String text) {
-        String url = String.format("/%s/messages", phoneNumberId);
+        String url = apiUrl + String.format("/%s/messages", phoneNumberId);
         Map<String, Object> payload = Map.of(
                 "messaging_product", "whatsapp",
                 "to", to,
                 "type", "text",
                 "text", Map.of("body", text)
         );
-        System.out.println("📤 Sending WhatsApp message to: " + to);
-        System.out.println("Payload: " + payload);
+        logger.info("📤 Sending WhatsApp message to: {}", to);
+        logger.info("Payload: {}", payload);
 
 
         return webClient.post()
@@ -48,16 +52,23 @@ public class WhatsAppService {
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(payload)
                 .retrieve()
+                .onStatus(HttpStatusCode::isError, response ->
+                        response.bodyToMono(String.class).flatMap(body -> {
+                            logger.info("❌ WhatsApp API error: " + response.statusCode());
+                            logger.info("Response body: " + body);
+                            return Mono.error(new RuntimeException("WhatsApp send failed: " + body));
+                        })
+                )
                 .bodyToMono(String.class)
-                .doOnNext(resp -> System.out.println("✅ WhatsApp API response: " + resp))
+                .doOnNext(resp -> logger.info("✅ WhatsApp API response: {}", resp))
                 .doOnError(error -> {
-                    System.err.println("❌ Error sending WhatsApp message to " + to);
-                    System.err.println("Error Type: " + error.getClass().getSimpleName());
-                    System.err.println("Error Message: " + error.getMessage());
+                    logger.info("❌ Error sending WhatsApp message to " + to);
+                    logger.info("Error Type: " + error.getClass().getSimpleName());
+                    logger.info("Error Message: " + error.getMessage());
                 })
                 .onErrorResume(error -> {
                     String fallbackMsg = "Failed to send message: " + error.getMessage();
-                    System.err.println("⚠️ Returning fallback response: " + fallbackMsg);
+                    logger.info("⚠️ Returning fallback response: " + fallbackMsg);
                     return Mono.just(fallbackMsg);
                 });
     }

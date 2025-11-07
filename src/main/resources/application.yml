@@ -15,6 +15,14 @@ server:
   servlet:
    context-path: /
 
+logging:
+  file:
+    name:  # Leave blank so logs go to stdout
+  level:
+    root: INFO
+    za.co.k-polit.comms: DEBUG
+  pattern:
+    console: '{"timestamp": "%d{yyyy-MM-dd HH:mm:ss}", "level": "%-5level", "logger": "%logger{36}", "message": "%msg"}%n'
 
 springdoc:
   api-docs:
