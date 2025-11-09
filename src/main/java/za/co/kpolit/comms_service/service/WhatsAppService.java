@@ -59,8 +59,8 @@ public class WhatsAppService {
                             return Mono.error(new RuntimeException("WhatsApp send failed: " + body));
                         })
                 )
-                .bodyToMono(String.class).block()
-                .doOnNext(resp -> logger.info("✅ WhatsApp API response: {}", resp))
+                .bodyToMono(String.class).block();
+                /*.doOnNext(resp -> logger.info("✅ WhatsApp API response: {}", resp))
                 .doOnError(error -> {
                     logger.info("❌ Error sending WhatsApp message to " + to);
                     logger.info("Error Type: " + error.getClass().getSimpleName());
@@ -70,7 +70,7 @@ public class WhatsAppService {
                     String fallbackMsg = "Failed to send message: " + error.getMessage();
                     logger.info("⚠️ Returning fallback response: " + fallbackMsg);
                     return Mono.just(fallbackMsg);
-                });
+                });*/
     }
 
     public Mono<String> sendTemplateMessage(String phoneNumberId, String to, String template) {
