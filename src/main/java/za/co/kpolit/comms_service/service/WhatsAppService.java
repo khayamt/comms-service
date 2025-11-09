@@ -83,13 +83,24 @@ public class WhatsAppService {
                         "name", template,
                         "language", Map.of("code", "en_US")));
 
+        logger.info("📤 Sending WhatsApp {} remplate message to: {}", template, to);
+        logger.info("Payload: {}", payload);
+
         return webClient.post()
                 .uri(url)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(payload)
                 .retrieve()
+                .onStatus(HttpStatusCode::isError, response ->
+                        response.bodyToMono(String.class).flatMap(body -> {
+                            logger.info("❌ WhatsApp API error: " + response.statusCode());
+                            logger.info("Response body: " + body);
+                            return Mono.error(new RuntimeException("WhatsApp send failed: " + body));
+                        })
+                )
                 .bodyToMono(String.class)
+                .doOnNext(resp -> logger.info("✅ WhatsApp API response: {}", resp))
                 .doOnNext(resp -> System.out.println("WhatsApp API response: " + resp));
     }
 

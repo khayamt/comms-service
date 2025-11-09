@@ -10,6 +10,8 @@ import za.co.kpolit.comms_service.repository.WhatsAppMessageRepository;
 import java.util.Map;
 import java.util.List;
 import java.time.Instant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/webhook")
@@ -28,7 +30,7 @@ public class WhatsAppController {
     public ResponseEntity<String> verifyWebhook(@RequestParam(name = "hub.mode", required = false) String mode,
                                                 @RequestParam(name = "hub.verify_token", required = false) String token,
                                                 @RequestParam(name = "hub.challenge", required = false) String challenge) {
-        System.out.println("Verifying WhatsApp Webhook: " + challenge);
+        logger.info("Verifying WhatsApp Webhook: " + challenge);
         if ("subscribe".equals(mode) && verifyToken.equals(token)) {
             return ResponseEntity.ok(challenge);
         } else {
@@ -38,7 +40,7 @@ public class WhatsAppController {
 
     @PostMapping
     public ResponseEntity<String> receiveMessage(@RequestBody Map<String, Object> body) {
-        System.out.println("Received WhatsApp Webhook: " + body);
+        logger.info("Received WhatsApp Webhook: " + body);
 
         try {
             List<Map<String, Object>> entryList = (List<Map<String, Object>>) body.get("entry");
@@ -58,16 +60,16 @@ public class WhatsAppController {
                         String text = ((Map<String, String>) message.get("text")).get("body");
                         String from = (String) message.get("from");
                         String response = "Thank you for the message, I will respond latter. Still in development.";
-                        System.out.println("📩 Message from " + from + ": " + text);
+                        logger.info("📩 Message from " + from + ": " + text);
                         saveMessage(from,to,"INCOMING","text",text,phoneNumberId);
 
                         sendWhatsAppMessage(phoneNumberId,from,response);
-                        System.out.println("Responded to " + from + ": " + response);
+                        logger.info("Responded to " + from + ": " + response);
                     }
                 }
             }
         } catch (Exception e) {
-            System.err.println("Error parsing webhook: " + e.getMessage());
+            logger.info("Error parsing webhook: " + e.getMessage());
         }
 
         return ResponseEntity.ok("EVENT_RECEIVED");
@@ -75,16 +77,16 @@ public class WhatsAppController {
 
     @PostMapping("/receiveGeneric")
     public ResponseEntity<String> receiveGenericMessage(@RequestBody Map<String, Object> body) {
-        System.out.println("Received Generic WhatsApp Webhook: " + body);
+        logger.info("Received Generic WhatsApp Webhook: " + body);
         return ResponseEntity.ok("EVENT_RECEIVED");
     }
     @PostMapping("/sendText")
     public Mono<ResponseEntity<String>> sendWhatsAppMessage(@RequestParam String phoneNumberId, @RequestParam String to, @RequestParam String text) {
-        System.out.println("Sending message to " + to);
+        logger.info("Sending message to " + to);
         return whatsappService.sendTextMessage(phoneNumberId, to, text)
                 .map(response ->
                 {
-                    System.out.println("✅ Message sent successfully:....");
+                    logger.info("✅ Message sent successfully:....");
                     saveMessage(phoneNumberId,to,"OUTGOING","text",text,phoneNumberId);
                     return ResponseEntity.ok("Message sent successfully: " + response);
                 })
