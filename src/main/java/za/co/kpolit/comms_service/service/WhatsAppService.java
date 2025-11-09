@@ -59,7 +59,7 @@ public class WhatsAppService {
                             return Mono.error(new RuntimeException("WhatsApp send failed: " + body));
                         })
                 )
-                .bodyToMono(String.class)
+                .bodyToMono(String.class).block()
                 .doOnNext(resp -> logger.info("✅ WhatsApp API response: {}", resp))
                 .doOnError(error -> {
                     logger.info("❌ Error sending WhatsApp message to " + to);
@@ -94,7 +94,7 @@ public class WhatsAppService {
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, response ->
                         response.bodyToMono(String.class).flatMap(body -> {
-                            logger.info("❌ WhatsApp API error: " + response.statusCode());
+                            logger.info("❌ WhatsApp Template API error: " + response.statusCode());
                             logger.info("Response body: " + body);
                             return Mono.error(new RuntimeException("WhatsApp send failed: " + body));
                         })
