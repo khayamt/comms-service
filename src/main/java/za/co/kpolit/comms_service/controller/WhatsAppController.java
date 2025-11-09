@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 @RestController
 @RequestMapping("/webhook")
 public class WhatsAppController {
+    private static final Logger logger = LoggerFactory.getLogger(WhatsAppController.class);
     private final WhatsAppService whatsappService;
     private final WhatsAppMessageRepository messageRepository;
     public WhatsAppController(WhatsAppService whatsappService, WhatsAppMessageRepository messageRepository) {
