@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 import za.co.kpolit.comms_service.service.WhatsAppService;
+import za.co.kpolit.comms_service.service.ZapierService;
 import za.co.kpolit.comms_service.model.WhatsAppMessage;
 import za.co.kpolit.comms_service.repository.WhatsAppMessageRepository;
 import java.util.Map;
@@ -12,16 +13,19 @@ import java.util.List;
 import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 
 @RestController
 @RequestMapping("/webhook")
 public class WhatsAppController {
     private static final Logger logger = LoggerFactory.getLogger(WhatsAppController.class);
     private final WhatsAppService whatsappService;
+    private final ZapierService zapierService;
     private final WhatsAppMessageRepository messageRepository;
-    public WhatsAppController(WhatsAppService whatsappService, WhatsAppMessageRepository messageRepository) {
+    public WhatsAppController(WhatsAppService whatsappService, WhatsAppMessageRepository messageRepository, ZapierService zapierService) {
         this.whatsappService = whatsappService;
         this.messageRepository = messageRepository;
+        this.zapierService = zapierService;
     }
 
     @Value("${whatsapp.verify-token}")
@@ -64,6 +68,7 @@ public class WhatsAppController {
                         logger.info("📩 Message from " + from + ": " + text);
                         saveMessage(from,to,"INCOMING","text",text,phoneNumberId);
 
+                        sendToZapier(phoneNumberId,from,response);
                         sendWhatsAppMessageBlocking(phoneNumberId,from,response);
                         logger.info("Responded to " + from + ": " + response);
                     }
@@ -74,6 +79,19 @@ public class WhatsAppController {
         }
 
         return ResponseEntity.ok("EVENT_RECEIVED");
+    }
+    @PostMapping("/forwardToZapier")
+    public Mono<ResponseEntity<String>> sendToZapier(@RequestParam String phoneNumberId, @RequestParam String to, @RequestParam String text) {
+        logger.info("Sending message Zapier " + to);
+        //
+        return zapierService.forwardToZapier(text)
+                .map(resp -> ResponseEntity.ok("Forwarded to Zapier: " + resp))
+                .onErrorResume(e -> {
+                    logger.error("❌ Error forwarding to Zapier", e);
+                    return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body("Failed to forward: " + e.getMessage()));
+                });
+        //
     }
 
     @PostMapping("/receiveGeneric")
