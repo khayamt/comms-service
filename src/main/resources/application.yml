@@ -23,9 +23,6 @@ logging:
     za.co.k-polit.comms: DEBUG
   pattern:
     console: '{"timestamp": "%d{yyyy-MM-dd HH:mm:ss}", "level": "%-5level", "logger": "%logger{36}", "message": "%msg"}%n'
-app:
-  zapier-url: "https://hooks.zapier.com/hooks/catch/4916661/usv4464/"
-  verify-signature: true
 
 springdoc:
   api-docs:
