@@ -11,10 +11,11 @@ import za.co.kpolit.comms_service.configuration.AppProperties;
 public class ZapierService {
     private static final Logger logger = LoggerFactory.getLogger(ZapierService.class);
 
-    private final WebClient webClient = WebClient.create();;
+    private final WebClient webClient;
     private final AppProperties properties;
 
-    public ZapierService(WebClient webClient, AppProperties properties) {
+    public ZapierService(WebClient.Builder builder, AppProperties properties) {
+        this.webClient = builder.baseUrl(properties.getZapierUrl()).build();
         this.properties = properties;
     }
 
