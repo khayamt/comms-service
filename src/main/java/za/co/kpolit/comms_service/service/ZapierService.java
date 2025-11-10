@@ -1,14 +1,5 @@
 package za.co.kpolit.comms_service.service;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -20,11 +11,10 @@ import za.co.kpolit.comms_service.configuration.AppProperties;
 public class ZapierService {
     private static final Logger logger = LoggerFactory.getLogger(ZapierService.class);
 
-    private final WebClient webClient;
+    private final WebClient webClient = WebClient.create();;
     private final AppProperties properties;
 
     public ZapierService(WebClient webClient, AppProperties properties) {
-        this.webClient = webClient;
         this.properties = properties;
     }
 
