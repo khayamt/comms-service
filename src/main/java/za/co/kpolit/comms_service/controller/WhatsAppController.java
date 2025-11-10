@@ -81,6 +81,24 @@ public class WhatsAppController {
         logger.info("Received Generic WhatsApp Webhook: " + body);
         return ResponseEntity.ok("EVENT_RECEIVED");
     }
+
+    @PostMapping("/sendTextBlocking")
+    public ResponseEntity<String> sendWhatsAppMessageBlocking(
+            @RequestParam String phoneNumberId,
+            @RequestParam String to,
+            @RequestParam String text) {
+
+        try {
+            logger.info("📤 Sending message to {}", to);
+            String response = whatsappService.sendTextMessageBlocking(phoneNumberId, to, text);
+            saveMessage(phoneNumberId, to, "OUTGOING", "text", text, phoneNumberId);
+            return ResponseEntity.ok("Message sent successfully: " + response);
+        } catch (Exception e) {
+            logger.error("❌ Error sending message: {}", e.getMessage());
+            return ResponseEntity.internalServerError().body("Failed to send message: " + e.getMessage());
+        }
+    }
+
     @PostMapping("/sendText")
     public Mono<ResponseEntity<String>> sendWhatsAppMessage(@RequestParam String phoneNumberId, @RequestParam String to, @RequestParam String text) {
         logger.info("Sending message to " + to);

@@ -34,6 +34,8 @@ public class WhatsAppService {
         this.webClient = builder.baseUrl(apiUrl).build();
     }
 
+
+
     public Mono<String> sendTextMessage(String phoneNumberId, String to, String text) {
         String url = apiUrl + String.format("/%s/messages", phoneNumberId);
         Map<String, Object> payload = Map.of(
@@ -59,8 +61,8 @@ public class WhatsAppService {
                             return Mono.error(new RuntimeException("WhatsApp send failed: " + body));
                         })
                 )
-                .bodyToMono(String.class).block();
-                /*.doOnNext(resp -> logger.info("✅ WhatsApp API response: {}", resp))
+                .bodyToMono(String.class)
+                .doOnNext(resp -> logger.info("✅ WhatsApp API response: {}", resp))
                 .doOnError(error -> {
                     logger.info("❌ Error sending WhatsApp message to " + to);
                     logger.info("Error Type: " + error.getClass().getSimpleName());
@@ -70,7 +72,46 @@ public class WhatsAppService {
                     String fallbackMsg = "Failed to send message: " + error.getMessage();
                     logger.info("⚠️ Returning fallback response: " + fallbackMsg);
                     return Mono.just(fallbackMsg);
-                });*/
+                });
+    }
+
+
+    public String sendTextMessageBlocking(String phoneNumberId, String to, String text) {
+        String url = String.format("https://graph.facebook.com/v20.0/%s/messages", phoneNumberId);
+
+        Map<String, Object> payload = Map.of(
+                "messaging_product", "whatsapp",
+                "to", to,
+                "type", "text",
+                "text", Map.of("body", text)
+        );
+
+        System.out.println("📤 Sending WhatsApp message to: " + to);
+        System.out.println("Payload: " + payload);
+
+        try {
+            String response = webClient.post()
+                    .uri(url)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(payload)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, res ->
+                            res.bodyToMono(String.class).flatMap(body -> {
+                                System.err.println("❌ API Error: " + res.statusCode());
+                                System.err.println("Response body: " + body);
+                                return Mono.error(new RuntimeException(body));
+                            })
+                    )
+                    .bodyToMono(String.class)
+                    .block(); // <--- blocks and returns String
+
+            System.out.println("✅ Response: " + response);
+        } catch (Exception e) {
+            System.err.println("❌ Exception: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return "Success";
     }
 
     public Mono<String> sendTemplateMessage(String phoneNumberId, String to, String template) {
