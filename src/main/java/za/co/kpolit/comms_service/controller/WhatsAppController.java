@@ -64,7 +64,7 @@ public class WhatsAppController {
                         logger.info("📩 Message from " + from + ": " + text);
                         saveMessage(from,to,"INCOMING","text",text,phoneNumberId);
 
-                        sendWhatsAppMessage(phoneNumberId,from,response);
+                        sendWhatsAppMessageBlocking(phoneNumberId,from,response);
                         logger.info("Responded to " + from + ": " + response);
                     }
                 }
