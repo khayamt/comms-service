@@ -67,8 +67,7 @@ public class WhatsAppController {
                         String response = "Thank you for the message, I will respond latter. Still in development.";
                         logger.info("📩 Message from " + from + ": " + text);
                         saveMessage(from,to,"INCOMING","text",text,phoneNumberId);
-
-                        response = String.valueOf(sendToZapier(phoneNumberId,from,text));
+                        response =zapierService.forwardToZapierBlocking(text);
                         sendWhatsAppMessageBlocking(phoneNumberId,from,response);
                         logger.info("Responded to " + from + ": " + response);
                     }
@@ -93,6 +92,20 @@ public class WhatsAppController {
                 });
         //
     }
+    @PostMapping("/forwardToAI")
+    public ResponseEntity<String> sendToAI(@RequestParam String text) {
+        try{
+            logger.info("Sending message AI " );
+            //
+            String response = zapierService.forwardToZapierBlocking(text);
+            return ResponseEntity.ok("Message sent successfully: " + response);
+        //
+        } catch (Exception e) {
+            logger.error("❌ Error sending message: {}", e.getMessage());
+            return ResponseEntity.internalServerError().body("Failed to send message: " + e.getMessage());
+        }
+    }
+
 
     @PostMapping("/receiveGeneric")
     public ResponseEntity<String> receiveGenericMessage(@RequestBody Map<String, Object> body) {

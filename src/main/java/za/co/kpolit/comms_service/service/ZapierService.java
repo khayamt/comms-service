@@ -35,4 +35,20 @@ public class ZapierService {
                 .doOnNext(resp -> logger.info("✅ Zapier responded: {}", resp))
                 .doOnError(err -> logger.error("❌ Failed to forward to Zapier", err));
     }
+    public String forwardToZapierBlocking(String jsonBody) {
+        String zapierUrl = properties.getZapierUrl();
+        if (zapierUrl == null || zapierUrl.isBlank()) {
+            String message = "Zapier URL not configured";
+            logger.info(message);
+            return message;
+        }
+
+        return webClient.post()
+                .uri(zapierUrl)
+                .header("Content-Type", "application/json")
+                .bodyValue(jsonBody)
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+    }
 }
