@@ -68,7 +68,7 @@ public class WhatsAppController {
                         logger.info("📩 Message from " + from + ": " + text);
                         saveMessage(from,to,"INCOMING","text",text,phoneNumberId);
 
-                        sendToZapier(phoneNumberId,from,response);
+                        response = String.valueOf(sendToZapier(phoneNumberId,from,text));
                         sendWhatsAppMessageBlocking(phoneNumberId,from,response);
                         logger.info("Responded to " + from + ": " + response);
                     }
